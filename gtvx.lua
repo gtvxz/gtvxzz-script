@@ -1,91 +1,69 @@
--- [[ SISTEMA DE ROLETA DE PERSONAGENS - gtvx ]] --
+-- [[ SISTEMA gtvx - PERSONAGEM REAL ]] --
 local Players = game:GetService("Players")
-local CoreGui = game:GetService("CoreGui")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 
--- 1. DATABASE DE PERSONAGENS
+-- 1. DATABASE DE ESTILOS
 local CharacterData = {
-    ["Hinata"] = {Rarity = "Rare", Color = Color3.fromRGB(255, 165, 0)},
-    ["Kageyama"] = {Rarity = "Epic", Color = Color3.fromRGB(0, 0, 255)},
-    ["Oikawa"] = {Rarity = "Legendary", Color = Color3.fromRGB(0, 255, 255)},
-    ["Bokuto"] = {Rarity = "Rare", Color = Color3.fromRGB(200, 200, 200)},
-    ["Standard Player"] = {Rarity = "Common", Color = Color3.fromRGB(255, 255, 255)}
+    ["Hinata"] = {Color = Color3.fromRGB(255, 165, 0)},
+    ["Kageyama"] = {Color = Color3.fromRGB(0, 0, 255)},
+    ["Oikawa"] = {Color = Color3.fromRGB(0, 255, 255)},
+    ["Bokuto"] = {Color = Color3.fromRGB(200, 200, 200)}
 }
 
--- 2. CRIAÇÃO DA INTERFACE
+-- 2. FUNÇÃO PARA CONECTAR AOS REMOTES DO JOGO
+local function TentativaMudarNoJogo(nome)
+    -- Isso tenta avisar ao servidor do jogo que você quer o personagem
+    local remoteNames = {"Spin", "ChangeStyle", "SetCharacter", "RemoteEvent", "CharacterRemote"}
+    for _, name in pairs(remoteNames) do
+        local found = ReplicatedStorage:FindFirstChild(name, true)
+        if found and found:IsA("RemoteEvent") then
+            found:FireServer(nome) -- Manda o comando real para o jogo
+            return true
+        end
+    end
+    return false
+end
+
+-- 3. INTERFACE (O PAINEL)
 local sg = Instance.new("ScreenGui")
-sg.Name = "GtvxRoleta"
-sg.Parent = (gethui and gethui()) or CoreGui
+sg.Name = "GtvxFinal"
+sg.Parent = (gethui and gethui()) or game:GetService("CoreGui")
 
 local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 300, 0, 350)
-main.Position = UDim2.new(0.5, -150, 0.5, -175)
+main.Size = UDim2.new(0, 250, 0, 150)
+main.Position = UDim2.new(0.5, -125, 0.5, -75)
 main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-main.BorderSizePixel = 0
 main.Active = true
 main.Draggable = true
 main.Parent = sg
 
-local corner = Instance.new("UICorner")
-corner.CornerRadius = UDim.new(0, 10)
-corner.Parent = main
-
 local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 40)
-title.Text = "ROLETA DE ESTILOS - GTVX"
-title.TextColor3 = Color3.new(1, 1, 1)
-title.Font = Enum.Font.SourceSansBold
-title.TextSize = 18
-title.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Text = "GTVX - ROLETA REAL"
+title.TextColor3 = Color3.new(1,1,1)
 title.Parent = main
 
-local listFrame = Instance.new("ScrollingFrame")
-listFrame.Size = UDim2.new(0.9, 0, 0.4, 0)
-listFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
-listFrame.CanvasSize = UDim2.new(0, 0, 1.5, 0)
-listFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-listFrame.BorderSizePixel = 0
-listFrame.Parent = main
-
-local uiList = Instance.new("UIListLayout")
-uiList.Parent = listFrame
-uiList.Padding = UDim.new(0, 5)
-
-local resultLabel = Instance.new("TextLabel")
-resultLabel.Size = UDim2.new(0.9, 0, 0.15, 0)
-resultLabel.Position = UDim2.new(0.05, 0, 0.6, 0)
-resultLabel.Text = "Aguardando..."
-resultLabel.TextColor3 = Color3.new(1, 1, 1)
-resultLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-resultLabel.Parent = main
-
 local spinBtn = Instance.new("TextButton")
-spinBtn.Size = UDim2.new(0.9, 0, 0.15, 0)
-spinBtn.Position = UDim2.new(0.05, 0, 0.8, 0)
-spinBtn.Text = "GIRAR ROLETA"
-spinBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 0)
-spinBtn.TextColor3 = Color3.new(1, 1, 1)
-spinBtn.Font = Enum.Font.SourceSansBold
-spinBtn.TextSize = 22
+spinBtn.Size = UDim2.new(0.8, 0, 0.4, 0)
+spinBtn.Position = UDim2.new(0.1, 0, 0.4, 0)
+spinBtn.Text = "GIRAR E APLICAR"
+spinBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
 spinBtn.Parent = main
 
--- 3. LÓGICA DE FUNCIONAMENTO
-local function Spin()
-    spinBtn.Text = "SORTEANDO..."
-    spinBtn.Active = false
+-- LÓGICA AO CLICAR
+spinBtn.MouseButton1Click:Connect(function()
+    local nomes = {"Hinata", "Kageyama", "Oikawa", "Bokuto"}
+    local escolhido = nomes[math.random(1, #nomes)]
     
-    task.wait(0.8) -- Simula o tempo da roleta
+    spinBtn.Text = "SORTEANDO: " .. escolhido:upper()
     
-    local names = {}
-    for name, _ in pairs(CharacterData) do table.insert(names, name) end
-    local luckyName = names[math.random(1, #names)]
-    local data = CharacterData[luckyName]
+    -- Tenta aplicar no jogo
+    local sucesso = TentativaMudarNoJogo(escolhido)
     
-    resultLabel.Text = "OBTEVE: " .. luckyName:upper()
-    resultLabel.TextColor3 = data.Color
-    spinBtn.Text = "GIRAR NOVAMENTE"
-    spinBtn.Active = true
-end
-
-spinBtn.MouseButton1Click:Connect(Spin)
-print("✅ Script gtvx carregado com sucesso!")
+    if sucesso then
+        print("gtvx: Aplicado " .. escolhido .. " via Remote!")
+    else
+        warn("gtvx: Remote não encontrado, mudando apenas visualmente.")
+    end
+end)
