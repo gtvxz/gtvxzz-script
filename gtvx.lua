@@ -1,69 +1,52 @@
--- [[ SISTEMA gtvx - PERSONAGEM REAL ]] --
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local player = Players.LocalPlayer
-
--- 1. DATABASE DE ESTILOS
-local CharacterData = {
-    ["Hinata"] = {Color = Color3.fromRGB(255, 165, 0)},
-    ["Kageyama"] = {Color = Color3.fromRGB(0, 0, 255)},
-    ["Oikawa"] = {Color = Color3.fromRGB(0, 255, 255)},
-    ["Bokuto"] = {Color = Color3.fromRGB(200, 200, 200)}
-}
-
--- 2. FUNÇÃO PARA CONECTAR AOS REMOTES DO JOGO
-local function TentativaMudarNoJogo(nome)
-    -- Isso tenta avisar ao servidor do jogo que você quer o personagem
-    local remoteNames = {"Spin", "ChangeStyle", "SetCharacter", "RemoteEvent", "CharacterRemote"}
-    for _, name in pairs(remoteNames) do
-        local found = ReplicatedStorage:FindFirstChild(name, true)
-        if found and found:IsA("RemoteEvent") then
-            found:FireServer(nome) -- Manda o comando real para o jogo
-            return true
-        end
-    end
-    return false
-end
-
--- 3. INTERFACE (O PAINEL)
-local sg = Instance.new("ScreenGui")
-sg.Name = "GtvxFinal"
-sg.Parent = (gethui and gethui()) or game:GetService("CoreGui")
-
-local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 250, 0, 150)
-main.Position = UDim2.new(0.5, -125, 0.5, -75)
-main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-main.Active = true
-main.Draggable = true
-main.Parent = sg
-
-local title = Instance.new("TextLabel")
-title.Size = UDim2.new(1, 0, 0, 30)
-title.Text = "GTVX - ROLETA REAL"
-title.TextColor3 = Color3.new(1,1,1)
-title.Parent = main
-
-local spinBtn = Instance.new("TextButton")
-spinBtn.Size = UDim2.new(0.8, 0, 0.4, 0)
-spinBtn.Position = UDim2.new(0.1, 0, 0.4, 0)
-spinBtn.Text = "GIRAR E APLICAR"
-spinBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
-spinBtn.Parent = main
-
--- LÓGICA AO CLICAR
-spinBtn.MouseButton1Click:Connect(function()
-    local nomes = {"Hinata", "Kageyama", "Oikawa", "Bokuto"}
-    local escolhido = nomes[math.random(1, #nomes)]
-    
-    spinBtn.Text = "SORTEANDO: " .. escolhido:upper()
-    
-    -- Tenta aplicar no jogo
-    local sucesso = TentativaMudarNoJogo(escolhido)
-    
-    if sucesso then
-        print("gtvx: Aplicado " .. escolhido .. " via Remote!")
-    else
-        warn("gtvx: Remote não encontrado, mudando apenas visualmente.")
-    end
+--[[
+WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+warn("Anti afk running")
+game:GetService("Players").LocalPlayer.Idled:connect(function()
+warn("Anti afk ran")
+game:GetService("VirtualUser"):CaptureController()
+game:GetService("VirtualUser"):ClickButton2(Vector2.new())
 end)
+local guiScreen = Instance.new("ScreenGui")
+guiScreen.Name = "TopGUI"
+guiScreen.DisplayOrder = 1000
+guiScreen.Parent = game.CoreGui
+local guiFrame = Instance.new("Frame")
+guiFrame.Size = UDim2.new(0, 200, 0, 150)
+guiFrame.Position = UDim2.new(0, 10, 0, 10)
+guiFrame.BackgroundTransparency = 0.5
+guiFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+guiFrame.BorderSizePixel = 0
+guiFrame.Parent = guiScreen
+local autoFarmToggle = Instance.new("TextButton")
+autoFarmToggle.Size = UDim2.new(0, 180, 0, 30)
+autoFarmToggle.Position = UDim2.new(0.5, -90, 0, 10)
+autoFarmToggle.Text = "Auto Farm: OFF"
+autoFarmToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+autoFarmToggle.BackgroundTransparency = 0.3
+autoFarmToggle.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+autoFarmToggle.Parent = guiFrame
+local autoFarmActive = false
+autoFarmToggle.MouseButton1Click:Connect(function()
+autoFarmActive = not autoFarmActive
+if autoFarmActive then
+autoFarmToggle.Text = "Auto Farm: ON"
+-- Implement the Auto Farm functionality here
+spawn(function()
+while autoFarmActive do
+for i, v in pairs(workspace:GetChildren()) do
+if v.ClassName == "Model" and v:FindFirstChild("Container") or v.Name == "PortCraneOversized" then
+v:Destroy()
+end
+end
+wait(1)
+end
+end)
+spawn(function()
+while autoFarmActive do
+local hum = game.Players.LocalPlayer.Character.Humanoid
+local car = hum.SeatPart.Parent
+car.PrimaryPart = car.Body:FindFirstChild("#Weight")
+if not getfenv().first then
+if workspace.Workspace:FindFirstChild("Buildings") then
+workspace.Workspace.Buildings:Destroy()
